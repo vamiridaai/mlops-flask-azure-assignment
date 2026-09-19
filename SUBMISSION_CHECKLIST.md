@@ -1,0 +1,21 @@
+# Submission Checklist
+
+- [x] Part 1: all eight conceptual answers
+- [x] Flask ML application
+- [x] Virtual-environment setup
+- [x] requirements.txt
+- [x] Unit tests
+- [x] GitHub Actions: push trigger, venv, dependencies, linting, tests
+- [x] Azure Pipelines: Python 3.11, dependencies, linting, tests, deployment stage
+- [x] Azure prediction shell script
+- [ ] Upload project to GitHub
+- [ ] Confirm successful GitHub Actions run and capture screenshot
+- [ ] Create Azure App Service and deploy application
+- [ ] Capture deployed application screenshot
+- [ ] Run prediction script against Azure and capture screenshot
+- [ ] Create Azure DevOps project and ARM service connection
+- [ ] Replace Azure placeholders in azure-pipelines.yml
+- [ ] Run successful Azure Pipeline and capture screenshot
+- [ ] Modify Flask application, commit, and verify both pipelines
+- [ ] Capture updated Azure application screenshot
+- [ ] Add final GitHub repository link and Azure App Service link to submission

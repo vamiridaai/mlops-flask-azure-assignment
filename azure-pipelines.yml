@@ -1,0 +1,65 @@
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  pythonVersion: "3.11"
+  azureServiceConnection: "YOUR-ARM-SERVICE-CONNECTION"
+  azureWebAppName: "YOUR-AZURE-APP-NAME"
+
+stages:
+  - stage: BuildAndTest
+    displayName: Build and Test
+    jobs:
+      - job: TestApplication
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: "$(pythonVersion)"
+          - script: |
+              python -m venv venv
+              source venv/bin/activate
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+              python train_model.py
+            displayName: Install dependencies and generate model
+          - script: |
+              source venv/bin/activate
+              flake8 app.py train_model.py tests --max-line-length=120
+            displayName: Run linting
+          - script: |
+              source venv/bin/activate
+              pytest -v
+            displayName: Run unit tests
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: "$(System.DefaultWorkingDirectory)"
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: "$(Build.ArtifactStagingDirectory)/app.zip"
+              replaceExistingArchive: true
+          - publish: "$(Build.ArtifactStagingDirectory)/app.zip"
+            artifact: flask-app
+
+  - stage: Deploy
+    displayName: Deploy to Azure App Service
+    dependsOn: BuildAndTest
+    condition: succeeded()
+    jobs:
+      - deployment: DeployApplication
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: flask-app
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: "$(azureServiceConnection)"
+                    appType: webAppLinux
+                    appName: "$(azureWebAppName)"
+                    package: "$(Pipeline.Workspace)/flask-app/app.zip"
+                    startUpCommand: "gunicorn --bind=0.0.0.0 --timeout 600 app:app"
