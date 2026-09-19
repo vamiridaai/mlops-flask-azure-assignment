@@ -1,4 +1,12 @@
-from app import app
+import sys
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from app import app  # noqa: E402
 
 
 def test_home():
@@ -22,7 +30,14 @@ def test_prediction():
 
     response = client.post(
         "/predict",
-        json={"features": [5.1, 3.5, 1.4, 0.2]},
+        json={
+            "features": [
+                5.1,
+                3.5,
+                1.4,
+                0.2,
+            ]
+        },
     )
 
     assert response.status_code == 200
@@ -31,6 +46,11 @@ def test_prediction():
 
     assert "prediction" in data
     assert "class_name" in data
+    assert data["class_name"] in [
+        "setosa",
+        "versicolor",
+        "virginica",
+    ]
 
 
 def test_invalid_prediction():
@@ -38,7 +58,12 @@ def test_invalid_prediction():
 
     response = client.post(
         "/predict",
-        json={"features": [1, 2]},
+        json={
+            "features": [
+                1,
+                2,
+            ]
+        },
     )
 
     assert response.status_code == 400
